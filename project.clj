@@ -37,9 +37,12 @@
                  [org.iplantc/common-cli "5.2.8.0"]
                  [org.iplantc/service-logging "5.2.8.0"]
                  [me.raynes/fs "1.4.6"]]
-  :plugins [[lein-midje "3.1.1"]]
+  :eastwood {:exclude-namespaces [:test-paths]
+             :linters [:wrong-arity :wrong-ns-form :wrong-pre-post :wrong-tag :misplaced-docstrings]}
+  :plugins [[lein-midje "3.1.1"]
+            [jonase/eastwood "0.2.3"]]
   :resource-paths []
   :profiles {:dev     {:dependencies   [[midje "1.6.3"]]
-                       :resource-paths ["dev-resource"]}
+                       :resource-paths ["dev-resources"]}
              :uberjar {:aot :all}}
   :jvm-opts ["-Dlogback.configurationFile=/etc/iplant/de/logging/dewey-logging.xml"])

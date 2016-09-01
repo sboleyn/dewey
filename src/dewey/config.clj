@@ -7,101 +7,100 @@
 (def ^:private config-valid (ref true))
 (def ^:private configs (ref []))
 
-(cc/defprop-str environment-name
+(cc/defprop-optstr environment-name
   "The name of the deployment environment this is part of."
   [props config-valid configs]
-  "dewey.environment-name")
+  "dewey.environment-name" "docker-compose")
 
-(cc/defprop-str amqp-host
+(cc/defprop-optstr amqp-host
   "The hostname for the AMQP server"
   [props config-valid configs]
-  "dewey.amqp.host")
+  "dewey.amqp.host" "rabbit")
 
-(cc/defprop-int amqp-port
+(cc/defprop-optint amqp-port
   "The port number for the AMQP server"
   [props config-valid configs]
-  "dewey.amqp.port")
+  "dewey.amqp.port" 5672)
 
-(cc/defprop-str amqp-user
+(cc/defprop-optstr amqp-user
   "The username for the AMQP server"
   [props config-valid configs]
-  "dewey.amqp.user")
+  "dewey.amqp.user" "guest")
 
-(cc/defprop-str amqp-pass
+(cc/defprop-optstr amqp-pass
   "The password for the AMQP user"
   [props config-valid configs]
-  "dewey.amqp.password")
+  "dewey.amqp.password" "guest")
 
-(cc/defprop-str amqp-exchange
+(cc/defprop-optstr amqp-exchange
   "The exchange name for the AMQP server"
   [props config-valid configs]
-  "dewey.amqp.exchange.name")
+  "dewey.amqp.exchange.name" "de")
 
-(cc/defprop-boolean amqp-exchange-durable
+(cc/defprop-optboolean amqp-exchange-durable
   "Whether the AMQP exchange is durable"
   [props config-valid configs]
-  "dewey.amqp.exchange.durable")
+  "dewey.amqp.exchange.durable" true)
 
-(cc/defprop-boolean amqp-exchange-autodelete
+(cc/defprop-optboolean amqp-exchange-autodelete
   "Whether the AMQP exchange is auto-delete"
   [props config-valid configs]
-  "dewey.amqp.exchange.auto-delete")
+  "dewey.amqp.exchange.auto-delete" false)
 
-(cc/defprop-int amqp-qos
+(cc/defprop-optint amqp-qos
   "How many messages to prefetch from the AMQP queue."
   [props config-valid configs]
-  "dewey.amqp.qos")
+  "dewey.amqp.qos" 100)
 
-(cc/defprop-str es-host
+(cc/defprop-optstr es-host
   "The hostname for the Elasticsearch server"
   [props config-valid configs]
-  "dewey.es.host")
+  "dewey.es.host" "elasticsearch")
 
-(cc/defprop-int es-port
+(cc/defprop-optint es-port
   "The port number for the Elasticsearch server"
   [props config-valid configs]
-  "dewey.es.port")
+  "dewey.es.port" 9200)
 
-(cc/defprop-str irods-host
+(cc/defprop-optstr irods-host
   "The hostname for the iRODS server"
   [props config-valid configs]
-  "dewey.irods.host")
+  "dewey.irods.host" "irods")
 
-(cc/defprop-int irods-port
+(cc/defprop-optint irods-port
   "The port number for the iRODS server"
   [props config-valid configs]
-  "dewey.irods.port")
+  "dewey.irods.port" 1247)
 
-(cc/defprop-str irods-zone
+(cc/defprop-optstr irods-zone
   "The zone name for the iRODS server"
   [props config-valid configs]
-  "dewey.irods.zone")
+  "dewey.irods.zone" "iplant")
 
-(cc/defprop-str irods-user
+(cc/defprop-optstr irods-user
   "The username for the iRODS server"
   [props config-valid configs]
-  "dewey.irods.user")
+  "dewey.irods.user" "rods")
 
-(cc/defprop-str irods-pass
+(cc/defprop-optstr irods-pass
   "The password for the iRODS user"
   [props config-valid configs]
-  "dewey.irods.password")
+  "dewey.irods.password" "notprod")
 
 (cc/defprop-optstr irods-default-resource
   "The default resource to use with the iRODS server. Probably blank."
   [props config-valid configs]
-  "dewey.irods.default-resource"
-  "")
+  "dewey.irods.default-resource" "")
 
-(cc/defprop-str irods-home
+(cc/defprop-optstr irods-home
   "The base home directory for the iRODS server."
   [props config-valid configs]
-  "dewey.irods.home")
+  "dewey.irods.home" "/iplant/home")
 
-(cc/defprop-int listen-port
+(cc/defprop-optint listen-port
   "The port number to listen on for status requests."
   [props config-valid configs]
-  "dewey.status.listen-port")
+  "dewey.status.listen-port" 60000)
 
 (defn- validate-config
   []
