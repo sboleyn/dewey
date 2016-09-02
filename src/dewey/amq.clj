@@ -37,6 +37,7 @@
                                                            exchange-name
                                                            exchange-durable
                                                            exchange-auto-delete
+                                                           qos
                                                            topics
                                                            delivery-fn))})]
     (lb/qos channel qos)
