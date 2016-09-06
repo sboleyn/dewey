@@ -1,19 +1,24 @@
-FROM discoenv/javabase
+FROM clojure:alpine
 
-USER root
 VOLUME ["/etc/iplant/de"]
 
-COPY conf/main/logback.xml /
-COPY target/dewey-standalone.jar /
-
 ARG git_commit=unknown
-ARG buildenv_git_commit=unknown
 ARG version=unknown
 LABEL org.iplantc.de.dewey.git-ref="$git_commit" \
-      org.iplantc.de.dewey.version="$version" \
-      org.iplantc.de.buildenv.git-ref="$buildenv_git_commit"
+      org.iplantc.de.dewey.version="$version"
 
-RUN ln -s "/opt/jdk/bin/java" "/bin/dewey"
+COPY . /usr/src/app
+COPY conf/main/logback.xml /usr/src/app/logback.xml
+
+WORKDIR /usr/src/app
+
+RUN apk add --update git && \
+    rm -rf /var/cache/apk
+
+RUN lein uberjar && \
+    cp target/dewey-standalone.jar .
+
+RUN ln -s "/usr/bin/java" "/bin/dewey"
+
 ENTRYPOINT ["dewey", "-Dlogback.configurationFile=/etc/iplant/de/logging/dewey-logging.xml", "-cp", ".:dewey-standalone.jar", "dewey.core"]
 CMD ["--help"]
-
