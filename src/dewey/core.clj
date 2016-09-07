@@ -87,7 +87,7 @@
 (def svc-info
   {:desc "Service that keeps an elasticsearch index synchronized with an iRODS repository."
    :app-name "dewey"
-   :group-id "org.iplantc"
+   :group-id "org.cyverse"
    :art-id "dewey"
    :service "dewey"})
 
