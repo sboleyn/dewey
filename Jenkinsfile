@@ -22,7 +22,7 @@ node {
     try {
         stage "Test"
         dockerTestRunner = "test-${env.BUILD_TAG}"
-        sh "docker run --rm --name ${dockerTestRunner} --entrypoint 'lein' ${dockerRepo} test"
+        sh "docker run --rm --name ${dockerTestRunner} --entrypoint 'lein' ${dockerRepo} midje"
     } finally {
         sh returnStatus: true, script: "docker kill ${dockerTestRunner}"
         sh returnStatus: true, script: "docker rm ${dockerTestRunner}"
