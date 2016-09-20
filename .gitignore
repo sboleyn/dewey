@@ -2,3 +2,5 @@
 .lein*
 dewey.iml
 target
+test2junit
+build.xml

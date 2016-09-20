@@ -39,7 +39,7 @@
                  [me.raynes/fs "1.4.6"]]
   :eastwood {:exclude-namespaces [:test-paths]
              :linters [:wrong-arity :wrong-ns-form :wrong-pre-post :wrong-tag :misplaced-docstrings]}
-  :plugins [[lein-midje "3.1.1"]
+  :plugins [[test2junit "1.1.3"]
             [jonase/eastwood "0.2.3"]]
   :resource-paths []
   :profiles {:dev     {:dependencies   [[midje "1.6.3"]]
