@@ -12,25 +12,35 @@
   [props config-valid configs]
   "dewey.environment-name" "docker-compose")
 
-(cc/defprop-optstr amqp-host
-  "The hostname for the AMQP server"
+(cc/defprop-optstr amqp-events-uri
+  "The URI for the handling event messages"
   [props config-valid configs]
-  "dewey.amqp.host" "rabbit")
+  "dewey.events.amqp.uri" "amqp://guest:guest@rabbit:5672/%2F")
 
-(cc/defprop-optint amqp-port
-  "The port number for the AMQP server"
+(cc/defprop-optstr amqp-events-exchange
+  "The name of the exchange to connect to for event processing"
   [props config-valid configs]
-  "dewey.amqp.port" 5672)
+  "dewey.events.amqp.exchange" "de")
 
-(cc/defprop-optstr amqp-user
-  "The username for the AMQP server"
+(cc/defprop-optstr amqp-events-exchange-type
+  "The type of the exchange"
   [props config-valid configs]
-  "dewey.amqp.user" "guest")
+  "dewey.events.amqp.exchange.type" "topic")
 
-(cc/defprop-optstr amqp-pass
-  "The password for the AMQP user"
+(cc/defprop-optboolean amqp-events-exchange-durable?
+  "Whether or not the exchange is durable"
   [props config-valid configs]
-  "dewey.amqp.password" "guest")
+  "dewey.events.amqp.exchange.durable" true)
+
+(cc/defprop-optboolean amqp-events-exchange-auto-delete?
+  "Whether or not to delete the exchange on disconnection"
+  [props config-valid configs]
+  "dewey.events.amqp.exchange.auto-delete" false)
+
+(cc/defprop-optstr amqp-uri
+  "The URI for the main AMQP broker"
+  [props config-valid configs]
+  "dewey.amqp.uri" "amqp://guest:guest@rabbit:5672/%2F")
 
 (cc/defprop-optstr amqp-exchange
   "The exchange name for the AMQP server"
