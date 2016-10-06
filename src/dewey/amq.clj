@@ -53,10 +53,7 @@
    messages in the queue are JSON documents.
 
    Parameters:
-     host                 - the host of the AMQP broker
-     port                 - the port the AMQP broker listends on
-     user                 - the AMQP user
-     password             - the AMQP user password
+     uri                  - the uri to use for the connection to the AMQP broker
      exchange-name        - the name of the exchange
      exchange-durable     - a flag indicating whether or not the exchange preserves messages
      exchange-auto-delete - a flag indicating whether or not the exchange is deleted when all queues
