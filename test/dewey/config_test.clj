@@ -12,10 +12,12 @@
 (deftest test-default-config
   (testing "default configuration settings"
     (is (= (config/environment-name) "docker-compose"))
-    (is (= (config/amqp-host) "rabbit"))
-    (is (= (config/amqp-port) 5672))
-    (is (= (config/amqp-user) "guest"))
-    (is (= (config/amqp-pass) "guest"))
+    (is (= (config/amqp-uri) "amqp://guest:guest@rabbit:5672/%2F"))
+    (is (= (config/amqp-events-uri) "amqp://guest:guest@rabbit:5672/%2F"))
+    (is (= (config/amqp-events-exchange) "de"))
+    (is (= (config/amqp-events-exchange-type) "topic"))
+    (is (true? (config/amqp-events-exchange-durable?)))
+    (is (false? (config/amqp-events-exchange-auto-delete?)))
     (is (= (config/amqp-exchange) "de"))
     (is (true? (config/amqp-exchange-durable)))
     (is (false? (config/amqp-exchange-autodelete)))

@@ -313,7 +313,7 @@
 
    Throws:
      It throws any exception perculating up from below."
-  [irods-cfg es routing-key msg]
+  [irods-cfg es _ routing-key msg]
   (tc/with-logging-context {:amqp-routing-key routing-key :amqp-message msg}
     (log/info (format "[curation/consume-msg] [%s] [%s]" routing-key msg))
     (let [consume-start (System/nanoTime)

@@ -13,11 +13,11 @@
 
 
 (defn- mk-handler
-  [consume]
+  [consume-fn]
   (fn [channel {:keys [routing-key delivery-tag redelivery?]} ^bytes payload]
     (tc/with-logging-context {:amqp-delivery-tag delivery-tag}
       (try+
-        (consume routing-key (json/parse-string (String. payload "UTF-8") true))
+        (consume-fn channel routing-key (json/parse-string (String. payload "UTF-8") true))
         (lb/ack channel delivery-tag)
         (catch Object _
           (lb/reject channel delivery-tag (not redelivery?))
@@ -53,10 +53,7 @@
    messages in the queue are JSON documents.
 
    Parameters:
-     host                 - the host of the AMQP broker
-     port                 - the port the AMQP broker listends on
-     user                 - the AMQP user
-     password             - the AMQP user password
+     uri                  - the uri to use for the connection to the AMQP broker
      exchange-name        - the name of the exchange
      exchange-durable     - a flag indicating whether or not the exchange preserves messages
      exchange-auto-delete - a flag indicating whether or not the exchange is deleted when all queues
@@ -68,12 +65,8 @@
    Throws:
      It will throw an exception if it fails to connect to the AMQP broker, setup the exchange, or
      setup the queue."
-  [host port user password queue-name exchange-name exchange-durable exchange-auto-delete qos consumer-fn & topics]
-  (consume (rmq/connect {:host                  host
-                         :port                  port
-                         :username              user
-                         :password              password
-                         :automatically-recover true})
+  [uri queue-name exchange-name exchange-durable exchange-auto-delete qos consumer-fn & topics]
+  (consume (rmq/connect {:uri uri :automatically-recover true})
            queue-name
            exchange-name
            exchange-durable

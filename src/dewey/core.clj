@@ -10,6 +10,7 @@
             [dewey.curation :as curation]
             [dewey.status :as status]
             [dewey.config :as cfg]
+            [dewey.events :as events]
             [common-cli.core :as ccli]
             [me.raynes.fs :as fs]
             [service-logging.thread-context :as tc])
@@ -46,30 +47,57 @@
               (cfg/irods-zone)
               (cfg/irods-default-resource)))
 
+(defn- connect-to-broker?
+  [irods-cfg es]
+  (try
+    (amq/attach-to-exchange (cfg/amqp-uri)
+                            (str "indexing." (cfg/environment-name))
+                            (cfg/amqp-exchange)
+                            (cfg/amqp-exchange-durable)
+                            (cfg/amqp-exchange-autodelete)
+                            (cfg/amqp-qos)
+                            (partial curation/consume-msg irods-cfg es)
+                            "data-object.#"
+                            "collection.#")
+    (log/info "Attached to the AMQP broker.")
+    true
+    (catch Exception e
+      (log/info e "Failed to attach to the AMQP broker. Retrying...")
+      false)))
+
+
+(defn- connect-to-events-broker?
+  []
+  (try
+    (let [queue-name (str "events.info-typer.queue." (cfg/environment-name))]
+      (amq/attach-to-exchange (cfg/amqp-events-uri)
+                              queue-name
+                              (cfg/amqp-events-exchange)
+                              (cfg/amqp-events-exchange-durable?)
+                              (cfg/amqp-events-exchange-auto-delete?)
+                              (cfg/amqp-qos)
+                              events/consume-msg
+                              "events.dewey.#")
+      (log/info "Attached to the events AMQP broker on queue" queue-name)
+      true)
+    (catch Exception e
+      (log/info e "Failed to attach to the evemts AMQP broker. Retrying...")
+      false)))
+
 
 (defn- listen
   [irods-cfg es]
-  (let [attached? (try
-                    (amq/attach-to-exchange (cfg/amqp-host)
-                                            (cfg/amqp-port)
-                                            (cfg/amqp-user)
-                                            (cfg/amqp-pass)
-                                            (str "indexing." (cfg/environment-name))
-                                            (cfg/amqp-exchange)
-                                            (cfg/amqp-exchange-durable)
-                                            (cfg/amqp-exchange-autodelete)
-                                            (cfg/amqp-qos)
-                                            (partial curation/consume-msg irods-cfg es)
-                                            "data-object.#"
-                                            "collection.#")
-                    (log/info "Attached to the AMQP broker.")
-                    true
-                    (catch Exception e
-                      (log/info e "Failed to attach to the AMQP broker. Retrying...")
-                      false))]
+  (let [attached? (connect-to-broker? irods-cfg es)]
     (when-not attached?
       (Thread/sleep 1000)
       (recur irods-cfg es))))
+
+
+(defn- listen-for-events
+  []
+  (when-not (connect-to-events-broker?)
+    (Thread/sleep 1000)
+    (recur)))
 
 
 (defn- listen-for-status
@@ -81,7 +109,8 @@
 (defn- run
   []
   (listen-for-status)
-  (listen (init-irods) (init-es)))
+  (listen (init-irods) (init-es))
+  (listen-for-events))
 
 
 (def svc-info
