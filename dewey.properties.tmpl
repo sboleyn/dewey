@@ -9,11 +9,11 @@ dewey.environment-name          = {{ env "DE_ENV" }}
 {{ with $v := (key (printf "%s/elasticsearch/host" $base)) }}dewey.es.host = {{ $v }}{{ end }}
 {{ with $v := (key (printf "%s/elasticsearch/port" $base)) }}dewey.es.port = {{ $v }}{{ end }}
 
-{{ with $v  == (key (printf "%s/irods/host" $base)) }}dewey.irods.host = {{ $v }}{{ end }}
-{{ with $v  == (key (printf "%s/irods/port" $base)) }}dewey.irods.port = {{ $v }}{{ end }}
-{{ with $v  == (key (printf "%s/irods/zone" $base)) }}dewey.irods.zone = {{ $v }}{{ end }}
-{{ with $v  == (key (printf "%s/irods/user" $base)) }}dewey.irods.user = {{ $v }}{{ end }}
-{{ with $v  == (key (printf "%s/irods/pass" $base)) }}dewey.irods.password = {{ $v }}{{ end }}
-{{ with $v  == (key (printf "%s/irods/resc" $resc)) }}dewey.irods.default-resource = {{ $v }}{{ end }}
-{{ with $v  == (key (printf "%s/irods/base" $base)) }}dewey.irods.home = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/host" $base)) }}dewey.irods.host = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/port" $base)) }}dewey.irods.port = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/zone" $base)) }}dewey.irods.zone = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/user" $base)) }}dewey.irods.user = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/pass" $base)) }}dewey.irods.password = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/resc" $base)) }}dewey.irods.default-resource = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/base" $base)) }}dewey.irods.home = {{ $v }}{{ end }}
 {{- end -}}
