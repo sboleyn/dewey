@@ -69,7 +69,7 @@
 (defn- connect-to-events-broker?
   []
   (try
-    (let [queue-name (str "events.info-typer.queue." (cfg/environment-name))]
+    (let [queue-name (str "events.dewey.queue." (cfg/environment-name))]
       (amq/attach-to-exchange (cfg/amqp-events-uri)
                               queue-name
                               (cfg/amqp-events-exchange)
