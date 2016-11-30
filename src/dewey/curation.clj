@@ -12,6 +12,17 @@
            [java.util UUID]
            [org.irods.jargon.core.exception FileNotFoundException JargonException]))
 
+(def ^:private irods-backoff-multiplier 2)
+(def ^:private last-irods-backoff (atom (/ 1000 irods-backoff-multiplier))) ; first backoff should be 1s
+(def ^:private max-irods-backoff 3600000) ; 1 hour
+
+(defn- irods-backoff []
+  (if (= @last-irods-backoff max-irods-backoff)
+    (do (log/error "iRODS connection backoff has maxed out at " max-irods-backoff "ms, dying")
+      (System/exit 1))
+    (let [next-backoff (min (* @last-irods-backoff irods-backoff-multiplier) max-irods-backoff)]
+      (log/warn "Sleeping for " next-backoff "ms")
+      (Thread/sleep (reset! last-irods-backoff next-backoff)))))
 
 (defn- extract-entity-id
   [msg]
@@ -329,8 +340,11 @@
                       "this index message was created."))
           (catch JargonException e
             (if (instance? IOException (.getCause e))
-              (log/warn "Failed to connect to iRODs. Could not process route" routing-key "with message"
-                msg)
+              (do
+                (log/warn "Failed to connect to iRODs. Could not process route" routing-key
+                          "with message" msg ". Backing off.")
+                (irods-backoff) ; This will System/exit if backoff time is exceeded
+                (throw e))
               (throw e))))
         (log/warn (str "unknown routing key" routing-key "received with message" msg)))
       (let [consumetime (milliseconds-since consume-start)]
