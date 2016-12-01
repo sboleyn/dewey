@@ -342,13 +342,11 @@
             (log/info "Attempted to index a non-existent iRODS entity. Most likely it was deleted after"
                       "this index message was created."))
           (catch JargonException e
-            (if (instance? IOException (.getCause e))
-              (do
-                (log/warn "Failed to connect to iRODs. Could not process route" routing-key
-                          "with message" msg ". Backing off.")
-                (irods-backoff) ; This will retry forever
-                (throw e))
-              (throw e))))
+            (when (instance? IOException (.getCause e))
+              (log/warn "Failed to connect to iRODs. Could not process route" routing-key
+                        "with message" msg ". Backing off.")
+              (irods-backoff)) ; This will retry forever
+            (throw e)))
         (log/warn (str "unknown routing key" routing-key "received with message" msg)))
       (let [consumetime (milliseconds-since consume-start)]
         (tc/with-logging-context {:amqp-total-time consumetime :dewey-consume-time @innertime}
