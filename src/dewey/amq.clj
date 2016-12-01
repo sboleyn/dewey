@@ -22,10 +22,10 @@
         (consume-fn channel routing-key (json/parse-string (String. payload "UTF-8") true))
         (lb/ack channel delivery-tag)
         (catch Object e
-          (if (and (instance? JargonException e) (instance? IOException (.getCause e)))
-            (lb/reject channel delivery-tag true) ; always requeue irods connection failures
-            (lb/reject channel delivery-tag (not redelivery?)))
-          (log/error (:throwable &throw-context) (str "MESSAGE HANDLING ERROR, redelivery: " redelivery?)))))))
+          (let [irods-connection-failure? (and (instance? JargonException e) (instance? IOException (.getCause e)))
+                should-requeue? (or (not redelivery?) irods-connection-failure?)]
+            (lb/reject channel delivery-tag should-requeue?)
+            (log/error (:throwable &throw-context) (str "MESSAGE HANDLING ERROR, will requeue?: " should-requeue?))))))))
 
 
 (defn- consume
