@@ -9,7 +9,9 @@
             [langohr.core :as rmq]
             [langohr.consumers :as lc]
             [langohr.exchange :as le]
-            [langohr.queue :as lq]))
+            [langohr.queue :as lq])
+  (:import [java.io IOException]
+           [org.irods.jargon.core.exception JargonException]))
 
 
 (defn- mk-handler
@@ -19,9 +21,11 @@
       (try+
         (consume-fn channel routing-key (json/parse-string (String. payload "UTF-8") true))
         (lb/ack channel delivery-tag)
-        (catch Object _
-          (lb/reject channel delivery-tag (not redelivery?))
-          (log/error (:throwable &throw-context) (str "MESSAGE HANDLING ERROR, redelivery: " redelivery?)))))))
+        (catch Object e
+          (let [irods-connection-failure? (and (instance? JargonException e) (instance? IOException (.getCause e)))
+                should-requeue? (or (not redelivery?) irods-connection-failure?)]
+            (lb/reject channel delivery-tag should-requeue?)
+            (log/error (:throwable &throw-context) (str "MESSAGE HANDLING ERROR, will requeue?: " should-requeue?))))))))
 
 
 (defn- consume
