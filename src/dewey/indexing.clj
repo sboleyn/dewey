@@ -2,6 +2,7 @@
   "This is the logic for making changes to search index."
   (:require [clojurewerkz.elastisch.query :as es-query]
             [clojurewerkz.elastisch.rest.document :as es-doc]
+            [clojurewerkz.elastisch.rest :as rest]
             [clojure-commons.file-utils :as file]
             [dewey.doc-prep :as prep]
             [dewey.entity :as entity])
@@ -34,14 +35,14 @@
 
 
 (defn- update-doc
-  [es entity script values]
-  (es-doc/update-with-script es
-                             index
-                             (mapping-type-of entity)
-                             (str (entity/id entity))
-                             script
-                             values))
-
+  "Scripted updates which are only compatible with Elasticsearch 5.x and greater."
+  [es entity script params]
+  (rest/post es
+             (rest/record-update-url es
+                                     index
+                                     (mapping-type-of entity)
+                                     (str (entity/id entity)))
+             {:body {:script {:inline script :lang "painless" :params params}}}))
 
 (defn entity-indexed?
   ([es entity]
@@ -134,6 +135,9 @@
   "Removes iRODS entities from the search index that have a path matching the provide glob. The glob
    supports * and ? wildcards with their typical meanings.
 
+   This method uses the Elasticsearch 5.x Delete By Query API, and is not backward compatible with
+   earlier versions of Elasticsearch.
+
    Parameters:
      es        - the elasticsearch connection
      path-glob - the glob describing the paths of the entities to remove
@@ -141,7 +145,9 @@
    Throws:
      This function can throw an exception if it can't connect to elasticsearch."
   [es path-glob]
-  (es-doc/delete-by-query-across-all-types es index (es-query/wildcard :path path-glob)))
+  (rest/post es
+             (rest/url-with-path es index "_delete_by_query")
+             {:body {:query (es-query/wildcard :path path-glob)}}))
 
 
 ; XXX - I wish I could think of a way to cleanly and simply separate out the document update logic
@@ -160,17 +166,17 @@
   ([es entity path]
    (update-doc es
                entity
-               "ctx._source.path = path;
-                ctx._source.label = label;"
+               "ctx._source.path = params.path;
+                ctx._source.label = params.label;"
                {:path  path
                 :label (file/basename path)}))
 
   ([es entity path mod-time]
     (update-doc es
                 entity
-                "ctx._source.path = path;
-                 ctx._source.label = label;
-                 ctx._source.dateModified = dateModified;"
+                "ctx._source.path = params.path;
+                 ctx._source.label = params.label;
+                 ctx._source.dateModified = params.dateModified;"
                 {:path         path
                  :label        (file/basename path)
                  :dateModified (prep/format-time mod-time)})))
@@ -189,7 +195,7 @@
   [es entity]
   (update-doc es
               entity
-              "ctx._source.userPermissions = permissions"
+              "ctx._source.userPermissions = params.permissions"
               {:permissions (prep/format-acl (entity/acl entity))}))
 
 
@@ -206,7 +212,7 @@
   [es entity]
   (update-doc es
               entity
-              "ctx._source.metadata = metadata"
+              "ctx._source.metadata = params.metadata"
               {:metadata (prep/format-metadata (entity/metadata entity))}))
 
 
@@ -223,7 +229,7 @@
   [es coll]
   (update-doc es
               coll
-              "ctx._source.dateModified = dateModified"
+              "ctx._source.dateModified = params.dateModified"
               {:dateModified (prep/format-time (entity/modification-time coll))}))
 
 
@@ -243,17 +249,17 @@
   ([es obj file-size]
    (update-doc es
                obj
-               "ctx._source.dateModified = dateModified;
-                ctx._source.fileSize = fileSize;"
+               "ctx._source.dateModified = params.dateModified;
+                ctx._source.fileSize = params.fileSize;"
                {:dateModified (prep/format-time (entity/modification-time obj))
                 :fileSize     file-size}))
 
   ([es obj file-size file-type]
    (update-doc es
                obj
-               "ctx._source.dateModified = dateModified;
-                ctx._source.fileSize = fileSize;
-                ctx._source.fileType = fileType;"
+               "ctx._source.dateModified = params.dateModified;
+                ctx._source.fileSize = params.fileSize;
+                ctx._source.fileType = params.fileType;"
                {:dateModified (prep/format-time (entity/modification-time obj))
                 :fileSize     file-size
                 :fileType     file-type})))
