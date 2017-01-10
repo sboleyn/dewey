@@ -135,6 +135,9 @@
   "Removes iRODS entities from the search index that have a path matching the provide glob. The glob
    supports * and ? wildcards with their typical meanings.
 
+   This method uses the Elasticsearch 5.x Delete By Query API, and is not backward compatible with
+   earlier versions of Elasticsearch.
+
    Parameters:
      es        - the elasticsearch connection
      path-glob - the glob describing the paths of the entities to remove
@@ -142,7 +145,9 @@
    Throws:
      This function can throw an exception if it can't connect to elasticsearch."
   [es path-glob]
-  (es-doc/delete-by-query-across-all-types es index (es-query/wildcard :path path-glob)))
+  (rest/post es
+             (rest/url-with-path es index "_delete_by_query")
+             {:body {:query (es-query/wildcard :path path-glob)}}))
 
 
 ; XXX - I wish I could think of a way to cleanly and simply separate out the document update logic
