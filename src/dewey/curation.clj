@@ -108,7 +108,7 @@
 
 (defn- reindex-data-obj-metadata
   [es obj]
-  (update-or-index-collection es obj indexing/update-metadata))
+  (update-or-index-data-object es obj indexing/update-metadata))
 
 
 (defn- update-collection-acl
