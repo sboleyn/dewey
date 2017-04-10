@@ -138,7 +138,7 @@
 
           (update-child-obj [child]
             (log/trace "update-child-obj called")
-            (update-or-index-collection es child update-child-obj-path))]
+            (update-or-index-data-object es child update-child-obj-path))]
     (update-or-index-collection es coll #(indexing/update-path %1 %2 new-path))
     (update-parent-modify-time irods es new-path)
     (crawl-collection coll update-child-coll update-child-obj)))
