@@ -7,7 +7,7 @@
       (string/trim (:out (sh "git" "rev-parse" "HEAD")))
       ""))
 
-(defproject org.cyverse/dewey "2.8.1-SNAPSHOT"
+(defproject org.cyverse/dewey "2.12.0-SNAPSHOT"
   :description "This is a RabbitMQ client responsible for keeping an elasticsearch index
                 synchronized with an iRODS repository using messages produced by iRODS."
   :url "https://github.com/cyverse-de/dewey"
@@ -30,7 +30,7 @@
                  [compojure "1.1.8"]
                  [ring "1.4.0"]
                  [slingshot "0.10.3"]
-                 [org.cyverse/clj-jargon "2.8.0"
+                 [org.cyverse/clj-jargon "2.8.2"
                    :exclusions [[org.slf4j/slf4j-log4j12]
                                 [log4j]]]
                  [org.cyverse/clojure-commons "2.8.0"]
