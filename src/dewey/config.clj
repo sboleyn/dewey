@@ -117,6 +117,10 @@
   (when-not (cc/validate-config configs config-valid)
     (throw+ {:error_code ce/ERR_CONFIG_INVALID})))
 
+(defn queue-name
+  []
+  (str "indexing." (environment-name)))
+
 (defn load-config-from-file
   [cfg-path]
   (cc/load-config-from-file cfg-path props)
