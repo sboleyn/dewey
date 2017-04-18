@@ -7,6 +7,8 @@
             [dewey.entity :as entity]
             [dewey.indexing :as indexing]
             [dewey.util :as util]
+            [dewey.config :as cfg]
+            [langohr.queue :as lq]
             [service-logging.thread-context :as tc])
   (:import [java.io IOException]
            [java.util UUID]
@@ -326,7 +328,7 @@
 
    Throws:
      It throws any exception perculating up from below."
-  [irods-cfg es _ routing-key msg]
+  [irods-cfg es channel routing-key msg]
   (tc/with-logging-context {:amqp-routing-key routing-key :amqp-message msg}
     (log/info (format "[curation/consume-msg] [%s] [%s]" routing-key msg))
     (let [consume-start (System/nanoTime)
@@ -348,6 +350,10 @@
               (irods-backoff)) ; This will retry forever
             (throw e)))
         (log/warn (str "unknown routing key" routing-key "received with message" msg)))
-      (let [consumetime (milliseconds-since consume-start)]
-        (tc/with-logging-context {:amqp-total-time consumetime :dewey-consume-time @innertime}
-          (log/info (format "[curation/consume-msg] [%s] [%s] %gms consume/%gms total" routing-key msg @innertime consumetime)))))))
+      (let [consumetime (milliseconds-since consume-start)
+            queue-stats (lq/status channel (cfg/queue-name))]
+        (tc/with-logging-context {:amqp-message-count (:message-count queue-stats)
+                                  :amqp-consumer-count (:consumer-count queue-stats)
+                                  :amqp-total-time consumetime
+                                  :dewey-consume-time @innertime}
+          (log/info (format "[curation/consume-msg] [%s] [%s] %gms consume/%gms total, %d consumers, %d msgs" routing-key msg @innertime consumetime (:consumer-count queue-stats) (:message-count queue-stats))))))))
