@@ -21,7 +21,7 @@
 (defn- init-es
   "Establishes a connection to elasticsearch"
   []
-  (let [url  (URL. "http" (cfg/es-host) (cfg/es-port) "")
+  (let [url  (URL. (cfg/es-uri))
         conn (try
                (es/connect(str url))
                (catch Exception e
