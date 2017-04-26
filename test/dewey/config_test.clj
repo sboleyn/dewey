@@ -23,6 +23,7 @@
     (is (false? (config/amqp-exchange-autodelete)))
     (is (= (config/amqp-qos) 100))
     (is (= (config/es-uri) "http://elasticsearch:9200"))
+    (is (= (config/es-index) "data"))
     (is (= (config/irods-host) "irods"))
     (is (= (config/irods-port) 1247))
     (is (= (config/irods-zone) "iplant"))

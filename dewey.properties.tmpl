@@ -8,6 +8,7 @@ dewey.environment-name          = {{ env "DE_ENV" }}
 {{ with $v := (key (printf "%s/amqp/uri" $base)) }}dewey.events.amqp.uri = {{ $v }}{{ end }}
 
 {{ with $v := (key (printf "%s/elasticsearch/base" $base)) }}dewey.es.uri = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/elasticsearch/data-alias" $base)) }}dewey.es.index = {{ $v }}{{ end }}
 
 {{ with $v := (key (printf "%s/irods/host" $base)) }}dewey.irods.host = {{ $v }}{{ end }}
 {{ with $v := (key (printf "%s/irods/port" $base)) }}dewey.irods.port = {{ $v }}{{ end }}

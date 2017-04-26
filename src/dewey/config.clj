@@ -67,6 +67,11 @@
   [props config-valid configs]
   "dewey.es.uri" "http://elasticsearch:9200")
 
+(cc/defprop-optstr es-index
+  "The Elasticsearch index"
+  [props config-valid configs]
+  "dewey.es.index" "data")
+
 (cc/defprop-optstr irods-host
   "The hostname for the iRODS server"
   [props config-valid configs]

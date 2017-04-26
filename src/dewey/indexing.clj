@@ -5,12 +5,13 @@
             [clojurewerkz.elastisch.rest :as rest]
             [clojure-commons.file-utils :as file]
             [dewey.doc-prep :as prep]
+            [dewey.config :as cfg]
             [dewey.entity :as entity])
   (:import [java.util Map]
            [clojure.lang Keyword]))
 
 
-(def ^{:private true} index "data")
+(def ^{:private true} index (cfg/es-index))
 
 (def ^{:private true} collection-type "folder")
 (def ^{:private true} data-object-type "file")
