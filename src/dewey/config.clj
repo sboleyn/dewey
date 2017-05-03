@@ -62,15 +62,15 @@
   [props config-valid configs]
   "dewey.amqp.qos" 100)
 
-(cc/defprop-optstr es-host
+(cc/defprop-optstr es-uri
   "The hostname for the Elasticsearch server"
   [props config-valid configs]
-  "dewey.es.host" "elasticsearch")
+  "dewey.es.uri" "http://elasticsearch:9200")
 
-(cc/defprop-optint es-port
-  "The port number for the Elasticsearch server"
+(cc/defprop-optstr es-index
+  "The Elasticsearch index"
   [props config-valid configs]
-  "dewey.es.port" 9200)
+  "dewey.es.index" "data")
 
 (cc/defprop-optstr irods-host
   "The hostname for the iRODS server"
