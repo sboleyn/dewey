@@ -51,7 +51,7 @@
   [irods-cfg es]
   (try
     (amq/attach-to-exchange (cfg/amqp-uri)
-                            (cfg/queue-name)
+                            (cfg/amqp-queue-name)
                             (cfg/amqp-exchange)
                             (cfg/amqp-exchange-durable)
                             (cfg/amqp-exchange-autodelete)

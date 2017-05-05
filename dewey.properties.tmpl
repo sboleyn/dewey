@@ -3,6 +3,7 @@ dewey.environment-name          = {{ env "DE_ENV" }}
 
 {{ with $v := (key (printf "%s/irods-amqp/uri" $base)) }}dewey.amqp.uri = {{ $v }}{{ end }}
 {{ with $v := (key (printf "%s/irods-amqp/exchange/name" $base)) }}dewey.amqp.exchange.name = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/dewey/amqp-queue-name" $base)) }}dewey.amqp.queue_name = {{ $v }}{{ end }}
 {{ with $v := (key (printf "%s/dewey/qos" $base)) }}dewey.amqp.qos = {{ $v }}{{ end }}
 
 {{ with $v := (key (printf "%s/amqp/uri" $base)) }}dewey.events.amqp.uri = {{ $v }}{{ end }}

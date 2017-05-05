@@ -21,6 +21,7 @@
     (is (= (config/amqp-exchange) "de"))
     (is (true? (config/amqp-exchange-durable)))
     (is (false? (config/amqp-exchange-autodelete)))
+    (is (= (config/amqp-queue-name) "dewey.indexing"))
     (is (= (config/amqp-qos) 100))
     (is (= (config/es-uri) "http://elasticsearch:9200"))
     (is (= (config/es-index) "data"))
