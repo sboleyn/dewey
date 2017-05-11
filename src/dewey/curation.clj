@@ -351,7 +351,7 @@
             (throw e)))
         (log/warn (str "unknown routing key" routing-key "received with message" msg)))
       (let [consumetime (milliseconds-since consume-start)
-            queue-stats (lq/status channel (cfg/queue-name))]
+            queue-stats (lq/status channel (cfg/amqp-queue-name))]
         (tc/with-logging-context {:amqp-message-count (:message-count queue-stats)
                                   :amqp-consumer-count (:consumer-count queue-stats)
                                   :amqp-total-time consumetime

@@ -62,6 +62,11 @@
   [props config-valid configs]
   "dewey.amqp.qos" 100)
 
+(cc/defprop-optstr amqp-queue-name
+  "The AMQP queue name for AMQP operations."
+  [props config-valid configs]
+  "dewey.amqp.queue_name"  "dewey.indexing")
+
 (cc/defprop-optstr es-uri
   "The hostname for the Elasticsearch server"
   [props config-valid configs]
@@ -116,10 +121,6 @@
   []
   (when-not (cc/validate-config configs config-valid)
     (throw+ {:error_code ce/ERR_CONFIG_INVALID})))
-
-(defn queue-name
-  []
-  (str "indexing." (environment-name)))
 
 (defn load-config-from-file
   [cfg-path]
