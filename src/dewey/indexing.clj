@@ -177,7 +177,7 @@
                 entity
                 "ctx._source.path = params.path;
                  ctx._source.label = params.label;
-                 ctx._source.dateModified = params.dateModified;"
+                 if (params.dateModified > ctx._source.dateModified) { ctx._source.dateModified = params.dateModified };"
                 {:path         path
                  :label        (file/basename path)
                  :dateModified (prep/format-time mod-time)})))
@@ -230,7 +230,7 @@
   [es coll]
   (update-doc es
               coll
-              "ctx._source.dateModified = params.dateModified"
+              "if (params.dateModified > ctx._source.dateModified) { ctx._source.dateModified = params.dateModified } else { ctx.op = \"none\" }"
               {:dateModified (prep/format-time (entity/modification-time coll))}))
 
 
@@ -250,7 +250,7 @@
   ([es obj file-size]
    (update-doc es
                obj
-               "ctx._source.dateModified = params.dateModified;
+               "if (params.dateModified > ctx._source.dateModified) { ctx._source.dateModified = params.dateModified; }
                 ctx._source.fileSize = params.fileSize;"
                {:dateModified (prep/format-time (entity/modification-time obj))
                 :fileSize     file-size}))
@@ -258,7 +258,7 @@
   ([es obj file-size file-type]
    (update-doc es
                obj
-               "ctx._source.dateModified = params.dateModified;
+               "if (params.dateModified > ctx._source.dateModified) { ctx._source.dateModified = params.dateModified; }
                 ctx._source.fileSize = params.fileSize;
                 ctx._source.fileType = params.fileType;"
                {:dateModified (prep/format-time (entity/modification-time obj))
