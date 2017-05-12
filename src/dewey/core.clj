@@ -22,8 +22,11 @@
   "Establishes a connection to elasticsearch"
   []
   (let [url  (URL. (cfg/es-uri))
+        http-opts (if (or (empty? (cfg/es-user)) (empty? (cfg/es-password)))
+                    {}
+                    {:basic-auth [(cfg/es-user) (cfg/es-password)]})
         conn (try
-               (es/connect(str url))
+               (es/connect (str url) http-opts)
                (catch Exception e
                  (log/debug e)
                  nil))]
