@@ -72,6 +72,16 @@
   [props config-valid configs]
   "dewey.es.uri" "http://elasticsearch:9200")
 
+(cc/defprop-optstr es-user
+  "The username for the Elasticsearch server"
+  [props config-valid configs]
+  "dewey.es.user" nil)
+
+(cc/defprop-optstr es-password
+  "The password for the Elasticsearch server"
+  [props config-valid configs]
+  "dewey.es.password" nil)
+
 (cc/defprop-optstr es-index
   "The Elasticsearch index"
   [props config-valid configs]
