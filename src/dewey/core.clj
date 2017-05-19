@@ -33,7 +33,7 @@
                  nil))]
     (if conn
       (do
-        (log/info "Found elasticsearch")
+        (log/info (format "Successfully connected to Elasticsearch: %s" url))
         conn)
       (do
         (log/info "Failed to find elasticsearch. Retrying...")
@@ -63,7 +63,7 @@
                             (partial curation/consume-msg irods-cfg es)
                             "data-object.#"
                             "collection.#")
-    (log/info "Attached to the AMQP broker.")
+    (log/info (format "Attached to the AMQP broker. uri=%s exchange=%s queue=%s" (cfg/amqp-uri) (cfg/amqp-exchange) (cfg/amqp-queue-name)))
     true
     (catch Exception e
       (log/info e "Failed to attach to the AMQP broker. Retrying...")

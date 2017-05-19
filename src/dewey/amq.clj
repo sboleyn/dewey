@@ -1,5 +1,5 @@
 (ns dewey.amq
-  "This library mananges the connection to the AMQP queue."
+  "This library manages the connection to the AMQP queue."
   (:use [slingshot.slingshot :only [try+]])
   (:require [clojure.tools.logging :as log]
             [service-logging.thread-context :as tc]
@@ -47,6 +47,7 @@
     (lb/qos channel qos)
     (le/topic channel exchange-name {:durable exchange-durable :auto-delete exchange-auto-delete})
     (lq/declare channel queue {:durable true :auto-delete false :exclusive false})
+    (log/info (format "Created AMQP reindexing queue. exchange=%s queue=%s" exchange-name queue))
     (doseq [topic topics] (lq/bind channel queue exchange-name {:routing-key topic}))
     (lb/consume channel queue consumer {:auto-ack false})))
 
@@ -70,11 +71,13 @@
      It will throw an exception if it fails to connect to the AMQP broker, setup the exchange, or
      setup the queue."
   [uri queue-name exchange-name exchange-durable exchange-auto-delete qos consumer-fn & topics]
-  (consume (rmq/connect {:uri uri :automatically-recover true})
-           queue-name
-           exchange-name
-           exchange-durable
-           exchange-auto-delete
-           qos
-           (if (empty? topics) "#" topics)
-           (mk-handler consumer-fn)))
+  (let [connection (rmq/connect {:uri uri :automatically-recover true})]
+    (log/info (format "Successfully connected to AMQP broker: %s" uri))
+    (consume connection
+             queue-name
+             exchange-name
+             exchange-durable
+             exchange-auto-delete
+             qos
+             (if (empty? topics) "#" topics)
+             (mk-handler consumer-fn))))
