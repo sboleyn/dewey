@@ -75,7 +75,7 @@
 (cc/defprop-optstr es-user
   "The username for the Elasticsearch server"
   [props config-valid configs]
-  "dewey.es.user" nil)
+  "dewey.es.username" nil)
 
 (cc/defprop-optstr es-password
   "The password for the Elasticsearch server"
