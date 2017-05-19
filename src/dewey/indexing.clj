@@ -11,8 +11,6 @@
            [clojure.lang Keyword]))
 
 
-(def ^{:private true} index (cfg/es-index))
-
 (def ^{:private true} collection-type "folder")
 (def ^{:private true} data-object-type "file")
 
@@ -32,7 +30,7 @@
 
 (defn- index-doc
   [es mapping-type doc]
-  (es-doc/create es index mapping-type doc :id (str (:id doc))))
+  (es-doc/create es (cfg/es-index) mapping-type doc :id (str (:id doc))))
 
 
 (defn- update-doc
@@ -40,7 +38,7 @@
   [es entity script params]
   (rest/post es
              (rest/record-update-url es
-                                     index
+                                     (cfg/es-index)
                                      (mapping-type-of entity)
                                      (str (entity/id entity)))
              {:body {:script {:inline script :lang "painless" :params params}}}))
@@ -55,7 +53,7 @@
 
            Throws:
              This function can throw an exception if it can't connect to elasticsearch."}
-   (es-doc/present? es index (mapping-type-of entity) (str (entity/id entity))))
+   (es-doc/present? es (cfg/es-index) (mapping-type-of entity) (str (entity/id entity))))
 
   ([es entity-type entity-id]
    ^{:doc "Determines whether or not an iRODS entity has been indexed.
@@ -67,7 +65,7 @@
 
            Throws:
              This function can throw an exception if it can't connect to elasticsearch."}
-   (es-doc/present? es index (mapping-type-of entity-type) (str entity-id))))
+   (es-doc/present? es (cfg/es-index) (mapping-type-of entity-type) (str entity-id))))
 
 
 (defn index-collection
@@ -129,7 +127,7 @@
      This function can throw an exception if it can't connect to elasticsearch."
   [es entity-type entity-id]
   (when (entity-indexed? es entity-type entity-id)
-    (es-doc/delete es index (mapping-type-of entity-type) (str entity-id))))
+    (es-doc/delete es (cfg/es-index) (mapping-type-of entity-type) (str entity-id))))
 
 
 (defn remove-entities-like
@@ -147,7 +145,7 @@
      This function can throw an exception if it can't connect to elasticsearch."
   [es path-glob]
   (rest/post es
-             (rest/url-with-path es index "_delete_by_query")
+             (rest/url-with-path es (cfg/es-index) "_delete_by_query")
              {:body {:query (es-query/wildcard :path path-glob)}}))
 
 
