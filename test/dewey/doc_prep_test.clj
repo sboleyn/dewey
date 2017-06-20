@@ -11,6 +11,8 @@
            [org.irods.jargon.core.pub.domain UserFilePermission]
            [org.irods.jargon.core.query CollectionAndDataObjectListingEntry]))
 
+;; Re-def private functions so they can be tested
+(def format-user #'dewey.doc-prep/format-user)
 
 (defn- mk-acl
   []
