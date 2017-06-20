@@ -334,26 +334,27 @@
     (let [consume-start (System/nanoTime)
           innertime (atom 0)]
       (if-let [consume (resolve-consumer routing-key)]
-        (try+
-          (irods/with-jargon irods-cfg [irods]
-            (let [innerstart (System/nanoTime)]
-              (consume irods es msg)
-              (reset! innertime (milliseconds-since innerstart))))
-          (reset-backoff)
-          (catch FileNotFoundException _
-            (log/info "Attempted to index a non-existent iRODS entity. Most likely it was deleted after"
-                      "this index message was created."))
-          (catch JargonException e
-            (when (instance? IOException (.getCause e))
-              (log/warn "Failed to connect to iRODs. Could not process route" routing-key
-                        "with message" msg ". Backing off.")
-              (irods-backoff)) ; This will retry forever
-            (throw e)))
-        (log/warn (str "unknown routing key" routing-key "received with message" msg)))
-      (let [consumetime (milliseconds-since consume-start)
-            queue-stats (lq/status channel (cfg/amqp-queue-name))]
-        (tc/with-logging-context {:amqp-message-count (:message-count queue-stats)
-                                  :amqp-consumer-count (:consumer-count queue-stats)
-                                  :amqp-total-time consumetime
-                                  :dewey-consume-time @innertime}
-          (log/info (format "[curation/consume-msg] [%s] [%s] %gms consume/%gms total, %d consumers, %d msgs" routing-key msg @innertime consumetime (:consumer-count queue-stats) (:message-count queue-stats))))))))
+        (do
+          (try+
+            (irods/with-jargon irods-cfg [irods]
+              (let [innerstart (System/nanoTime)]
+                (consume irods es msg)
+                (reset! innertime (milliseconds-since innerstart))))
+            (reset-backoff)
+            (catch FileNotFoundException _
+              (log/info "Attempted to index a non-existent iRODS entity. Most likely it was deleted after"
+                        "this index message was created."))
+            (catch JargonException e
+              (when (instance? IOException (.getCause e))
+                (log/warn "Failed to connect to iRODs. Could not process route" routing-key
+                          "with message" msg ". Backing off.")
+                (irods-backoff)) ; This will retry forever
+              (throw e)))
+          (let [consumetime (milliseconds-since consume-start)
+                queue-stats (lq/status channel (cfg/amqp-queue-name))]
+            (tc/with-logging-context {:amqp-message-count (:message-count queue-stats)
+                                      :amqp-consumer-count (:consumer-count queue-stats)
+                                      :amqp-total-time consumetime
+                                      :dewey-consume-time @innertime}
+              (log/info (format "[curation/consume-msg] [%s] [%s] %gms consume/%gms total, %d consumers, %d msgs" routing-key msg @innertime consumetime (:consumer-count queue-stats) (:message-count queue-stats))))))
+        (log/warn (str "unknown routing key \"" routing-key "\" received with message: " msg))))))
