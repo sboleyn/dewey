@@ -18,6 +18,7 @@
   :main ^:skip-aot dewey.core
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.cli "0.3.1"]
+                 [org.clojure/test.check "0.9.0"]
                  [cheshire "5.5.0"
                    :exclusions [[com.fasterxml.jackson.dataformat/jackson-dataformat-cbor]
                                 [com.fasterxml.jackson.dataformat/jackson-dataformat-smile]

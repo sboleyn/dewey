@@ -5,7 +5,7 @@
   (:import [java.util Date]))
 
 
-(defn- format-user
+(defn format-user
   ([user] (format-user (:name user) (:zone user)))
   ([name zone] (str name \# zone)))
 
