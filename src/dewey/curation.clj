@@ -275,8 +275,7 @@
   (let [update (fn [_ obj]
                  (indexing/update-data-object es obj (entity/size obj) (entity/media-type obj)))
         apply  (fn [obj]
-                 (update-or-index-data-object es obj update)
-                 (indexing/index-data-object es obj))
+                 (update-or-index-data-object es obj update))
         id     (extract-entity-id msg)]
     (apply-or-remove irods es :data-object id apply)))
 
