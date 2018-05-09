@@ -60,6 +60,10 @@
     (when (or (= type :data-object) (indexable? entity)) (op entity))
     (indexing/remove-entity es entity-type entity-id)))
 
+(defn- apply-or-remove-or-noop
+  [irods es entity-type entity-id op]
+  (when (indexing/entity-indexed? es entity-type entity-id)
+    (apply-or-remove irods es entity-type entity-id op)))
 
 ; This function is recursive and could blow the stack if a collection tree is deep, like 500 or more
 ; levels deep.  This is unlikely in iRODS due to the 2700 character path length restriction.
@@ -196,7 +200,7 @@
   [irods es msg]
   (let [reindex (partial reindex-data-obj-metadata es)
         id      (extract-entity-id msg)]
-    (apply-or-remove irods es :data-object id reindex)))
+    (apply-or-remove-or-noop irods es :data-object id reindex)))
 
 
 (defn- reinidex-obj-dest-metadata-handler
@@ -335,7 +339,7 @@
       (if-let [consume (resolve-consumer routing-key)]
         (do
           (try+
-            (irods/with-jargon irods-cfg [irods]
+            (irods/with-jargon irods-cfg :lazy true [irods]
               (let [innerstart (System/nanoTime)]
                 (consume irods es msg)
                 (reset! innertime (milliseconds-since innerstart))))

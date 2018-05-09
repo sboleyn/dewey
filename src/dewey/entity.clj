@@ -12,7 +12,7 @@
 (defn- lookup-base
   [irods path]
   (try
-    (.getCollectionAndDataObjectListingEntryAtGivenAbsolutePath (:lister irods) path)
+    (.getCollectionAndDataObjectListingEntryAtGivenAbsolutePath (:lister @irods) path)
     (catch FileNotFoundException _)))
 
 
@@ -20,7 +20,7 @@
   ([irods base]
    (when base
      (let [path (.getFormattedAbsolutePath base)
-           id   (-> (metadata/get-attribute irods path "ipc_UUID") first :value)]
+           id   (-> (metadata/get-attribute @irods path "ipc_UUID") first :value)]
        (if id
          (mk-entity irods base id)
          (log/info path "doesn't appear to have a UUID. It may have just been renamed.")))))
@@ -56,10 +56,10 @@
              It returns a representation of the entity suitable for use in this namespace. It
              returns nil if the entity doesn't exist."}
    (when-let [path (case type
-                     :collection  (first (metadata/list-collections-with-attr-value irods
+                     :collection  (first (metadata/list-collections-with-attr-value @irods
                                                                                     "ipc_UUID"
                                                                                     id))
-                     :data-object (first (metadata/list-files-with-avu irods "ipc_UUID" := id)))]
+                     :data-object (first (metadata/list-files-with-avu @irods "ipc_UUID" := id)))]
      (mk-entity irods (lookup-base irods path) id))))
 
 
@@ -111,7 +111,7 @@
    Returns:
      The zone where the entity is stored."
   [entity]
-  (:zone (:irods entity)))
+  (:zone @(:irods entity)))
 
 
 (defn acl
@@ -124,8 +124,8 @@
      The entity's ACL as a list of UserFilePermission objects."
   [entity]
   (case (entity-type entity)
-    :collection  (.listPermissionsForCollection (:collectionAO (:irods entity)) (path entity))
-    :data-object (.listPermissionsForDataObject (:dataObjectAO (:irods entity)) (path entity))))
+    :collection  (.listPermissionsForCollection (:collectionAO @(:irods entity)) (path entity))
+    :data-object (.listPermissionsForDataObject (:dataObjectAO @(:irods entity)) (path entity))))
 
 
 (defn creator
@@ -193,7 +193,7 @@
      It returns the media type, if known."
   [entity]
   (when (and entity (.isDataObject (:base entity)))
-    (.getDataTypeName (info/data-object (:irods entity) (path entity)))))
+    (.getDataTypeName (info/data-object @(:irods entity) (path entity)))))
 
 
 (defn metadata
@@ -210,7 +210,7 @@
       :unit  <attribute value's unit>}"
   [entity]
   (when entity
-    (remove #(= "ipc_UUID" (:attr %)) (metadata/get-metadata (:irods entity) (path entity)))))
+    (remove #(= "ipc_UUID" (:attr %)) (metadata/get-metadata @(:irods entity) (path entity)))))
 
 
 (defn parent
@@ -236,7 +236,7 @@
      It returns a lazy sequence of the collection entities."
   [parent]
   (when-let [irods (:irods parent)]
-    (map (partial mk-entity irods) (lazy/list-subdirs-in irods (path parent)))))
+    (map (partial mk-entity irods) (lazy/list-subdirs-in @irods (path parent)))))
 
 
 (defn child-data-objects
@@ -249,7 +249,7 @@
      It returns a lazy sequence of the data object entities."
   [parent]
   (when-let [irods (:irods parent)]
-    (map (partial mk-entity irods) (lazy/list-files-in irods (path parent)))))
+    (map (partial mk-entity irods) (lazy/list-files-in @irods (path parent)))))
 
 
 (defn child-data-objects-like
@@ -264,6 +264,6 @@
      It returns a lazy sequence of data objects entity"
   [parent name-glob]
   (when-let [irods (:irods parent)]
-    (->> (lazy/list-files-in irods (path parent))
+    (->> (lazy/list-files-in @irods (path parent))
       (filter #(re-matches name-glob (.getNodeLabelDisplayValue %)))
       (map (partial mk-entity irods)))))
