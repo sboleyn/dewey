@@ -177,7 +177,7 @@
     (apply-or-remove irods es :collection id reindex)))
 
 
-(defn- reinidex-coll-dest-metadata-handler
+(defn- reindex-coll-dest-metadata-handler
   [irods es msg]
   (let [reindex (partial reindex-collection-metadata es)
         dest-id (UUID/fromString (:destination msg))]
@@ -203,7 +203,7 @@
     (apply-if-indexed irods es :data-object id #(apply-or-remove irods es :data-object id reindex))))
 
 
-(defn- reinidex-obj-dest-metadata-handler
+(defn- reindex-obj-dest-metadata-handler
   [irods es msg]
   (let [reindex (partial reindex-data-obj-metadata es)
         dest-id (UUID/fromString (:destination msg))]
@@ -291,7 +291,7 @@
     "collection.add"               index-collection-handler
     "collection.metadata.add"      reindex-collection-metadata-handler
     "collection.metadata.adda"     reindex-collection-metadata-handler
-    "collection.metadata.cp"       reinidex-coll-dest-metadata-handler
+    "collection.metadata.cp"       reindex-coll-dest-metadata-handler
     "collection.metadata.mod"      reindex-collection-metadata-handler
     "collection.metadata.rm"       reindex-collection-metadata-handler
     "collection.metadata.rmw"      reindex-collection-metadata-handler
@@ -303,7 +303,7 @@
     "data-object.metadata.add"     reindex-data-object-metadata-handler
     "data-object.metadata.adda"    reindex-data-object-metadata-handler
     "data-object.metadata.addw"    reindex-multiobject-metadata-handler
-    "data-object.metadata.cp"      reinidex-obj-dest-metadata-handler
+    "data-object.metadata.cp"      reindex-obj-dest-metadata-handler
     "data-object.metadata.mod"     reindex-data-object-metadata-handler
     "data-object.metadata.rm"      reindex-data-object-metadata-handler
     "data-object.metadata.rmw"     reindex-data-object-metadata-handler
