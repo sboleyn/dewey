@@ -172,10 +172,11 @@
 
 (defn- reindex-collection-metadata-handler
   [irods es msg]
-  (let [reindex (partial reindex-collection-metadata es)
-        id      (extract-entity-id msg)]
-    (apply-or-remove irods es :collection id reindex)))
-
+  (let [id      (extract-entity-id msg)
+        reindex (fn []
+                  (if-let [entity (entity/lookup-entity irods :collection id)]
+                    (when (indexable? entity) (indexing/update-metadata es entity))))]
+    (apply-if-indexed irods es :collection id reindex)))
 
 (defn- reindex-coll-dest-metadata-handler
   [irods es msg]
