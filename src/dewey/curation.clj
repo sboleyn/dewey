@@ -198,9 +198,11 @@
 
 (defn- reindex-data-object-metadata-handler
   [irods es msg]
-  (let [reindex (partial reindex-data-obj-metadata es)
-        id      (extract-entity-id msg)]
-    (apply-if-indexed irods es :data-object id #(apply-or-remove irods es :data-object id reindex))))
+  (let [id      (extract-entity-id msg)
+        reindex (fn []
+                  (if-let [entity (entity/lookup-entity irods :data-object id)]
+                    (indexing/update-metadata es entity)))]
+    (apply-if-indexed irods es :data-object id reindex)))
 
 
 (defn- reindex-obj-dest-metadata-handler
