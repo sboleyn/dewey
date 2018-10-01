@@ -1,10 +1,10 @@
-FROM discoenv/clojure-base:master
+FROM clojure:lein-alpine
 
-ENV CONF_TEMPLATE=/usr/src/app/dewey.properties.tmpl
-ENV CONF_FILENAME=dewey.properties
-ENV PROGRAM=dewey
+WORKDIR /usr/src/app
 
-VOLUME ["/etc/iplant/de"]
+RUN apk add --no-cache git
+
+RUN ln -s "/usr/bin/java" "/bin/dewey"
 
 COPY project.clj /usr/src/app/
 RUN lein deps
@@ -15,9 +15,8 @@ COPY . /usr/src/app
 RUN lein uberjar && \
     cp target/dewey-standalone.jar .
 
-RUN ln -s "/usr/bin/java" "/bin/dewey"
-
-ENTRYPOINT ["run-service", "-Dlogback.configurationFile=/etc/iplant/de/logging/dewey-logging.xml", "-cp", ".:dewey-standalone.jar", "dewey.core"]
+ENTRYPOINT ["dewey", "-Dlogback.configurationFile=/etc/iplant/de/logging/dewey-logging.xml", "-cp", ".:dewey-standalone.jar", "dewey.core"]
+CMD ["--help"]
 
 ARG git_commit=unknown
 ARG version=unknown
