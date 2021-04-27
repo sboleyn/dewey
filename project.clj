@@ -16,7 +16,7 @@
   :manifest {"Git-Ref" ~(git-ref)}
   :uberjar-name "dewey-standalone.jar"
   :main ^:skip-aot dewey.core
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[org.clojure/clojure "1.10.3"]
                  [org.clojure/tools.cli "0.3.1"]
                  [org.clojure/test.check "0.9.0"]
                  [cheshire "5.5.0"
@@ -31,12 +31,13 @@
                  [compojure "1.1.8"]
                  [ring "1.4.0"]
                  [slingshot "0.10.3"]
-                 [org.cyverse/clj-jargon "2.8.9"
+                 [org.cyverse/clj-jargon "3.0.0-SNAPSHOT"
                    :exclusions [[org.slf4j/slf4j-log4j12]
                                 [log4j]]]
                  [org.cyverse/clojure-commons "2.8.0"]
                  [org.cyverse/common-cli "2.8.1"]
-                 [org.cyverse/service-logging "2.8.0"]
+                 [org.cyverse/service-logging "2.8.2"]
+                 [net.logstash.logback/logstash-logback-encoder "4.11"]
                  [org.cyverse/event-messages "0.0.1"]
                  [me.raynes/fs "1.4.6"]]
   :eastwood {:exclude-namespaces [:test-paths]
