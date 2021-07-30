@@ -31,7 +31,7 @@ spec:
                 path: dewey.properties
       containers:
       - name: dewey
-        image: discoenv/dewey
+        image: harbor.cyverse.org/de/dewey
         resources:
           requests:
             cpu: "480m"
