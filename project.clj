@@ -27,7 +27,7 @@
                                 [com.fasterxml.jackson.core/jackson-core]]]
                  [clojurewerkz/elastisch "2.2.1"]
                  [com.novemberain/langohr "3.5.1"]
-                 [liberator "0.11.1"]
+                 [liberator "0.15.3"]
                  [compojure "1.1.8"]
                  [ring "1.4.0"]
                  [slingshot "0.10.3"]
@@ -48,4 +48,4 @@
   :profiles {:dev     {:dependencies   [[midje "1.6.3"]]
                        :resource-paths ["dev-resources"]}
              :uberjar {:aot :all}}
-  :jvm-opts ["-Dlogback.configurationFile=/etc/iplant/de/logging/dewey-logging.xml"])
+  :jvm-opts ["-Dlogback.configurationFile=/etc/iplant/de/logging/dewey-logging.xml" "-javaagent:./opentelemetry-javaagent.jar" "-Dotel.resource.attributes=service.name=dewey"])

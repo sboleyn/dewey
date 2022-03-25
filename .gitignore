@@ -5,3 +5,5 @@ target
 test2junit
 build.xml
 .nrepl-port
+*.jar
+!opentelemetry-javaagent.jar
