@@ -31,7 +31,7 @@
                  [compojure "1.1.8"]
                  [ring "1.4.0"]
                  [slingshot "0.10.3"]
-                 [org.cyverse/clj-jargon "3.0.0"
+                 [org.cyverse/clj-jargon "3.0.3"
                    :exclusions [[org.slf4j/slf4j-log4j12]
                                 [log4j]]]
                  [org.cyverse/clojure-commons "2.8.0"]
