@@ -6,14 +6,14 @@
             [clojure-commons.file-utils :as file]
             [dewey.doc-prep :as prep]
             [dewey.config :as cfg]
-            [dewey.entity :as entity])
-  (:import [java.util Map]
+            [dewey.entity :as entity]
+            [qbits.spandex :as s])
+  (:import
+           [java.util Map]
            [clojure.lang Keyword]))
-
 
 (def ^{:private true} collection-type "folder")
 (def ^{:private true} data-object-type "file")
-
 
 (defmulti ^{:private true} mapping-type-of type)
 
@@ -27,11 +27,35 @@
     :collection  collection-type
     :data-object data-object-type))
 
+;; (defn- index-doc
+;;   [es mapping-type doc]
+;;   (es-doc/create es (cfg/es-index) mapping-type doc :id (str (:id doc))))
 
 (defn- index-doc
-  [es mapping-type doc]
-  (es-doc/create es (cfg/es-index) mapping-type doc :id (str (:id doc))))
+;; (request client
+;;          {:keys [method url headers query-string body keywordize?
+;;                  response-consumer-factory exception-handler]
+;;           :or {method :get
+;;                keywordize? true
+;;                exception-handler default-exception-handler
+;;                response-consumer-factory
+;;                HttpAsyncResponseConsumerFactory/DEFAULT}
+;;           :as request-params}).
 
+;; PUT https://<host>:<port>/<index-name>/_doc/<document-id>
+;; {
+;;   "title": "The Wind Rises",
+;;   "release_date": "2013-07-20"
+;; }
+  [es doc]
+  (let [index-name (cfg/es-index)
+        url (str (cfg/es-uri) (format "/%s/_doc/%s" (cfg/es-index) (str (:id doc))))
+        request-params {:method :put
+                        :url url ;; (.toExternalForm url)
+                        :headers {"Content-type" "application/json"}
+                        :body doc
+                        }]
+    (s/request es request-params)))
 
 (defn- update-doc
   "Scripted updates which are only compatible with Elasticsearch 5.x and greater."
@@ -67,7 +91,6 @@
              This function can throw an exception if it can't connect to elasticsearch."}
    (es-doc/present? es (cfg/es-index) (mapping-type-of entity-type) (str entity-id))))
 
-
 (defn index-collection
   "Indexes a collection.
 
@@ -86,8 +109,8 @@
                                    (entity/creation-time coll)
                                    (entity/modification-time coll)
                                    (entity/metadata coll))]
-    (index-doc es collection-type folder)))
-
+    ;; (index-doc es collection-type folder)
+    (index-doc es folder)))
 
 (defn index-data-object
   "Indexes a data object.
@@ -112,8 +135,8 @@
                                (entity/metadata obj)
                                (or file-size (entity/size obj))
                                (or file-type (entity/media-type obj)))]
-    (index-doc es data-object-type file)))
-
+    ;;(index-doc es data-object-type file)
+    (index-doc es file)))
 
 (defn remove-entity
   "Removes an iRODS entity from the search index.
@@ -128,7 +151,6 @@
   [es entity-type entity-id]
   (when (entity-indexed? es entity-type entity-id)
     (es-doc/delete es (cfg/es-index) (mapping-type-of entity-type) (str entity-id))))
-
 
 (defn remove-entities-like
   "Removes iRODS entities from the search index that have a path matching the provide glob. The glob
@@ -148,11 +170,9 @@
              (rest/url-with-path es (cfg/es-index) "_delete_by_query")
              {:body {:query (es-query/wildcard :path path-glob)}}))
 
-
 ; XXX - I wish I could think of a way to cleanly and simply separate out the document update logic
 ; from the update scripts calls in the following functions. It really belongs with the rest of the
 ; document logic in the doc-prep namespace.
-
 
 (defn update-path
   "Updates the path of an entity and optionally its modification time
@@ -171,15 +191,14 @@
                 :label (file/basename path)}))
 
   ([es entity path mod-time]
-    (update-doc es
-                entity
-                "ctx._source.path = params.path;
+   (update-doc es
+               entity
+               "ctx._source.path = params.path;
                  ctx._source.label = params.label;
                  if (params.dateModified > ctx._source.dateModified) { ctx._source.dateModified = params.dateModified };"
-                {:path         path
-                 :label        (file/basename path)
-                 :dateModified (prep/format-time mod-time)})))
-
+               {:path         path
+                :label        (file/basename path)
+                :dateModified (prep/format-time mod-time)})))
 
 (defn update-acl
   "Updates the indexed ACL of an entity.
@@ -197,7 +216,6 @@
               "ctx._source.userPermissions = params.permissions"
               {:permissions (prep/format-acl (entity/acl entity))}))
 
-
 (defn update-metadata
   "Updates the indexed AVU metadata of an entity.
 
@@ -214,7 +232,6 @@
               "ctx._source.metadata = params.metadata"
               {:metadata (prep/format-metadata (entity/metadata entity))}))
 
-
 (defn update-collection-modify-time
   "Updates the indexed modify time of a collection.
 
@@ -230,7 +247,6 @@
               coll
               "if (params.dateModified > ctx._source.dateModified) { ctx._source.dateModified = params.dateModified } else { ctx.op = \"none\" }"
               {:dateModified (prep/format-time (entity/modification-time coll))}))
-
 
 (defn update-data-object
   "Updates the indexed data object. It will update the modification time, file size and optionally

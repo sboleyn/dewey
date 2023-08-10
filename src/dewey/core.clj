@@ -13,21 +13,26 @@
             [dewey.events :as events]
             [common-cli.core :as ccli]
             [me.raynes.fs :as fs]
-            [service-logging.thread-context :as tc])
+            [service-logging.thread-context :as tc]
+            [qbits.spandex :as s])
+
   (:import [java.net URL]
            [java.util Properties]))
 
 
-(defn- init-es
+(defn init-es
   "Establishes a connection to elasticsearch"
   []
-  (let [url  (URL. (cfg/es-uri))
-        http-opts (if (or (empty? (cfg/es-user)) (empty? (cfg/es-password)))
-                    {}
-                    {:basic-auth [(cfg/es-user) (cfg/es-password)]
-                     :content-type :application/json})
+  (let [url  (str (cfg/es-uri))
+        host-map {:hosts [url]}
+        opts (if (or (empty? (cfg/es-user)) (empty? (cfg/es-password)))
+               host-map
+               (merge host-map {:http-client {:basic-auth
+                                              {:user (cfg/es-user) :password (cfg/es-password)}}
+                                :default-headers {"Content-Type" "application/json"}
+                                }))
         conn (try
-               (es/connect (str url) http-opts)
+               (s/client opts)
                (catch Exception e
                  (log/debug e)
                  nil))]
@@ -51,23 +56,9 @@
               (cfg/irods-zone)
               (cfg/irods-default-resource)))
 
-(defn- connect-to-broker?
-  [irods-cfg es]
-  (try
-    (amq/attach-to-exchange (cfg/amqp-uri)
-                            (cfg/amqp-queue-name)
-                            (cfg/amqp-exchange)
-                            (cfg/amqp-exchange-durable)
-                            (cfg/amqp-exchange-autodelete)
-                            (cfg/amqp-qos)
-                            (partial curation/consume-msg irods-cfg es)
-                            "data-object.#"
-                            "collection.#")
-    (log/info (format "Attached to the AMQP broker. uri=%s exchange=%s queue=%s" (cfg/amqp-uri) (cfg/amqp-exchange) (cfg/amqp-queue-name)))
-    true
-    (catch Exception e
-      (log/info e "Failed to attach to the AMQP broker. Retrying...")
-      false)))
+defn- connect-to-broker?
+[irods-cfg es]
+
 
 
 (defn- connect-to-events-broker?
@@ -108,7 +99,7 @@
   []
   (.start
    (Thread.
-     (partial status/start-jetty (cfg/listen-port)))))
+    (partial status/start-jetty (cfg/listen-port)))))
 
 (defn- run
   []
@@ -144,5 +135,5 @@
          (ccli/exit 1 "The config file is not readable."))
        (cfg/load-config-from-file (:config options))
        (run))
-      (catch Object _
-        (log/error (:throwable &throw-context) "UNEXPECTED ERROR - EXITING")))))
+     (catch Object _
+       (log/error (:throwable &throw-context) "UNEXPECTED ERROR - EXITING")))))
