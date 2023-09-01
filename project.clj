@@ -25,7 +25,6 @@
                                 [com.fasterxml.jackson.core/jackson-annotations]
                                 [com.fasterxml.jackson.core/jackson-databind]
                                 [com.fasterxml.jackson.core/jackson-core]]]
-                 [clojurewerkz/elastisch "2.2.1"]
                  [com.novemberain/langohr "3.5.1"]
                  [liberator "0.15.3"]
                  [compojure "1.1.8"]
@@ -39,7 +38,9 @@
                  [org.cyverse/service-logging "2.8.2"]
                  [net.logstash.logback/logstash-logback-encoder "4.11"]
                  [org.cyverse/event-messages "0.0.1"]
-                 [me.raynes/fs "1.4.6"]]
+                 [me.raynes/fs "1.4.6"]
+                 [cc.qbits/spandex "0.7.11"]
+                 [org.apache.httpcomponents/httpcore "4.4.11"] ]
   :eastwood {:exclude-namespaces [:test-paths]
              :linters [:wrong-arity :wrong-ns-form :wrong-pre-post :wrong-tag :misplaced-docstrings]}
   :plugins [[test2junit "1.1.3"]
