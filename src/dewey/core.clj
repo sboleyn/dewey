@@ -3,7 +3,7 @@
   (:use [slingshot.slingshot :only [try+ throw+]])
   (:require [clojure.tools.cli :as cli]
             [clojure.tools.logging :as log]
-            [clojurewerkz.elastisch.rest :as es]
+            [qbits.spandex :as s]
             [clj-jargon.init :as irods]
             [clojure-commons.config :as config]
             [dewey.amq :as amq]
@@ -21,16 +21,16 @@
 (defn- init-es
   "Establishes a connection to elasticsearch"
   []
-  (let [url  (URL. (cfg/es-uri))
-        http-opts (if (or (empty? (cfg/es-user)) (empty? (cfg/es-password)))
-                    {}
-                    {:basic-auth [(cfg/es-user) (cfg/es-password)]
-                     :content-type :application/json})
-        conn (try
-               (es/connect (str url) http-opts)
-               (catch Exception e
-                 (log/debug e)
-                 nil))]
+  (let [url      (URL. (cfg/es-uri))
+        host-map {:hosts [(str url)]}
+        opts     (if (or (empty? (cfg/es-user)) (empty? (cfg/es-password)))
+                   host-map
+                   (merge host-map {:http-client {:basic-auth
+                                                  {:user (cfg/es-user)
+                                                   :password (cfg/es-password)}}}))
+        conn     (try
+                   (s/client opts)
+                   (catch Exception e (log/debug e) nil))]
     (if conn
       (do
         (log/info (format "Successfully connected to Elasticsearch: %s" url))
