@@ -70,22 +70,22 @@
 (cc/defprop-optstr es-uri
   "The hostname for the Elasticsearch server"
   [props config-valid configs]
-  "dewey.es.uri" "http://elasticsearch:9200")
+  "dewey.es.uri" "https://localhost:9200")
 
 (cc/defprop-optstr es-user
   "The username for the Elasticsearch server"
   [props config-valid configs]
-  "dewey.es.username" nil)
+  "dewey.es.username" "admin")
 
 (cc/defprop-optstr es-password
   "The password for the Elasticsearch server"
   [props config-valid configs]
-  "dewey.es.password" nil)
+  "dewey.es.password" "admin")
 
 (cc/defprop-optstr es-index
   "The Elasticsearch index"
   [props config-valid configs]
-  "dewey.es.index" "data")
+  "dewey.es.index" "data_test1")
 
 (cc/defprop-optstr irods-host
   "The hostname for the iRODS server"
