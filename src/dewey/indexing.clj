@@ -1,51 +1,52 @@
 (ns dewey.indexing
   "This is the logic for making changes to search index."
-  (:require [clojurewerkz.elastisch.query :as es-query]
-            [clojurewerkz.elastisch.rest.document :as es-doc]
-            [clojurewerkz.elastisch.rest :as rest]
+  (:use [slingshot.slingshot :only [try+]])
+  (:require [qbits.spandex :as s]
             [clojure-commons.file-utils :as file]
             [dewey.doc-prep :as prep]
             [dewey.config :as cfg]
-            [dewey.entity :as entity])
-  (:import [java.util Map]
-           [clojure.lang Keyword]))
-
-
-(def ^{:private true} collection-type "folder")
-(def ^{:private true} data-object-type "file")
-
-
-(defmulti ^{:private true} mapping-type-of type)
-
-(defmethod mapping-type-of Map
-  [entity]
-  (mapping-type-of (entity/entity-type entity)))
-
-(defmethod mapping-type-of Keyword
-  [entity-type]
-  (case entity-type
-    :collection  collection-type
-    :data-object data-object-type))
+            [dewey.entity :as entity]
+            [clojure.tools.logging :as log]))
 
 
 (defn- index-doc
-  [es mapping-type doc]
-  (es-doc/create es (cfg/es-index) mapping-type doc :id (str (:id doc))))
-
+;;This should throw an error message if it cannot connect
+  [es doc]
+  (s/request es {:url
+                 [(cfg/es-index) :_doc (str (:id doc))]
+                 :method :put
+                 :headers {"Content-Type" "application/json"}
+                 :body doc}))
 
 (defn- update-doc
   "Scripted updates which are only compatible with Elasticsearch 5.x and greater."
   [es entity script params]
-  (rest/post es
-             (rest/record-update-url es
-                                     (cfg/es-index)
-                                     (mapping-type-of entity)
-                                     (str (entity/id entity)))
-             {:body {:script {:inline script :lang "painless" :params params}}}))
+  (s/request es {:url [(cfg/es-index) :_update (str (entity/id entity))]
+                 :method :post
+                 :headers {"Content-Type" "application/json"}
+                 :body {"script" {"source" script "lang" "painless" "params" params}}}))
 
-(defn entity-indexed?
-  ([es entity]
-   ^{:doc "Determines whether or not an iRODS entity has been indexed.
+(defn entity-type
+  [entity]
+  (cond
+    (string? entity) :string
+    (map? entity) :map))
+
+(defn index-error
+  [e]
+  (let [resp (ex-data e)]
+    (println (:status resp))
+    (cond
+      (= 404 (:status resp))
+      (do (log/info (format "Entity %s not found in index %s" entity-id (cfg/es-index)))
+          false)
+      :else
+      (do (log/info (format "Elasticsearch is not responding as expected."))
+          (throw e)
+          nil))))
+
+(defmulti
+  ^{:doc "Determines whether or not an iRODS entity has been indexed.
 
            Parameters:
              es     - the elasticsearch connection
@@ -53,20 +54,33 @@
 
            Throws:
              This function can throw an exception if it can't connect to elasticsearch."}
-   (es-doc/present? es (cfg/es-index) (mapping-type-of entity) (str (entity/id entity))))
+  entity-indexed? (fn [_es entity] (entity-type entity)))
 
-  ([es entity-type entity-id]
-   ^{:doc "Determines whether or not an iRODS entity has been indexed.
 
-           Parameters:
-             es          - the elasticsearch connection
-             entity-type - :collection|:data-object
-             entity-id   - the UUID of the entity being checked
+(defmethod entity-indexed? :string
+  [es entity-id]
+  (try+
+   (s/request es {:url [(cfg/es-index) :_doc entity-id]
+                  :method :head}) true
+   (catch clojure.lang.ExceptionInfo e ;;qbits.spandex.ResponseException is wrapped in clojure.lang.ExceptionInfo
+     (index-error e))
 
-           Throws:
-             This function can throw an exception if it can't connect to elasticsearch."}
-   (es-doc/present? es (cfg/es-index) (mapping-type-of entity-type) (str entity-id))))
+   (catch Exception e
+     (log/info "Elasticsearch is not responding.")
+     (throw e))))
 
+
+(defmethod entity-indexed? :map
+  [es entity]
+  (try
+    (s/request es {:url [(cfg/es-index) :_doc (str (entity/id entity))]
+                   :method :head}) true
+    (catch clojure.lang.ExceptionInfo e ;;qbits.spandex.ResponseException is wrapped in clojure.lang.ExceptionInfo
+     (index-error e))
+
+   (catch Exception e
+     (log/info "Elasticsearch is not responding.")
+     (throw e))))
 
 (defn index-collection
   "Indexes a collection.
@@ -86,7 +100,7 @@
                                    (entity/creation-time coll)
                                    (entity/modification-time coll)
                                    (entity/metadata coll))]
-    (index-doc es collection-type folder)))
+    (index-doc es folder)))
 
 
 (defn index-data-object
@@ -112,7 +126,7 @@
                                (entity/metadata obj)
                                (or file-size (entity/size obj))
                                (or file-type (entity/media-type obj)))]
-    (index-doc es data-object-type file)))
+    (index-doc es file)))
 
 
 (defn remove-entity
@@ -125,13 +139,13 @@
 
    Throws:
      This function can throw an exception if it can't connect to elasticsearch."
-  [es entity-type entity-id]
-  (when (entity-indexed? es entity-type entity-id)
-    (es-doc/delete es (cfg/es-index) (mapping-type-of entity-type) (str entity-id))))
+  [es entity-id]
+  (when (entity-indexed? es (str entity-id))
+    (s/request es {:url [(cfg/es-index) :_doc (str entity-id)]})))
 
-
+;; START HERE ON FRIDAY
 (defn remove-entities-like
-  "Removes iRODS entities from the search index that have a path matching the provide glob. The glob
+  "Removes iRODS entities from the search index that have a path matching the provided glob. The glob
    supports * and ? wildcards with their typical meanings.
 
    This method uses the Elasticsearch 5.x Delete By Query API, and is not backward compatible with
@@ -144,9 +158,10 @@
    Throws:
      This function can throw an exception if it can't connect to elasticsearch."
   [es path-glob]
-  (rest/post es
-             (rest/url-with-path es (cfg/es-index) "_delete_by_query")
-             {:body {:query (es-query/wildcard :path path-glob)}}))
+  (s/request es {:url [(cfg/es-index) :_delete_by_query]
+                 :query-string "analyze_wildcard=true"
+                 :method :post
+                 :body {:query {:wildcard {:path path-glob}}}}))
 
 
 ; XXX - I wish I could think of a way to cleanly and simply separate out the document update logic
@@ -171,14 +186,14 @@
                 :label (file/basename path)}))
 
   ([es entity path mod-time]
-    (update-doc es
-                entity
-                "ctx._source.path = params.path;
+   (update-doc es
+               entity
+               "ctx._source.path = params.path;
                  ctx._source.label = params.label;
-                 if (params.dateModified > ctx._source.dateModified) { ctx._source.dateModified = params.dateModified };"
-                {:path         path
-                 :label        (file/basename path)
-                 :dateModified (prep/format-time mod-time)})))
+                 if (params.dateModified > ctx._source.dateModified) { ctx._source.dateModified = params.dateModified }"
+               {:path         path
+                :label        (file/basename path)
+                :dateModified (prep/format-time mod-time)})))
 
 
 (defn update-acl
