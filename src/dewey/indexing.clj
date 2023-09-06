@@ -10,7 +10,6 @@
 
 
 (defn- index-doc
-;;This should throw an error message if it cannot connect
   [es doc]
   (s/request es {:url
                  [(cfg/es-index) :_doc (str (:id doc))]
@@ -143,7 +142,6 @@
   (when (entity-indexed? es (str entity-id))
     (s/request es {:url [(cfg/es-index) :_doc (str entity-id)]})))
 
-;; START HERE ON FRIDAY
 (defn remove-entities-like
   "Removes iRODS entities from the search index that have a path matching the provided glob. The glob
    supports * and ? wildcards with their typical meanings.
