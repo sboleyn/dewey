@@ -7,3 +7,5 @@ build.xml
 .nrepl-port
 *.jar
 !opentelemetry-javaagent.jar
+/.clj-kondo
+/.lsp/.cache
