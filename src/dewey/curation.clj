@@ -58,11 +58,11 @@
   (log/trace "apply-or-remove <irods> <es>" entity-type entity-id "<op> called")
   (if-let [entity (entity/lookup-entity irods entity-type entity-id)]
     (when (or (= type :data-object) (indexable? entity)) (op entity))
-    (indexing/remove-entity es entity-type entity-id)))
+    (indexing/remove-entity es entity-id)))
 
 (defn- apply-if-indexed
-  [irods es entity-type entity-id op]
-  (when (indexing/entity-indexed? es entity-type entity-id)
+  [irods es entity-id op]
+  (when (indexing/entity-indexed? es (str entity-id))
     (op)))
 
 ; This function is recursive and could blow the stack if a collection tree is deep, like 500 or more
@@ -176,7 +176,7 @@
         reindex (fn []
                   (if-let [entity (entity/lookup-entity irods :collection id)]
                     (when (indexable? entity) (indexing/update-metadata es entity))))]
-    (apply-if-indexed irods es :collection id reindex)))
+    (apply-if-indexed irods es id reindex)))
 
 (defn- reindex-coll-dest-metadata-handler
   [irods es msg]
@@ -203,7 +203,7 @@
         reindex (fn []
                   (if-let [entity (entity/lookup-entity irods :data-object id)]
                     (indexing/update-metadata es entity)))]
-    (apply-if-indexed irods es :data-object id reindex)))
+    (apply-if-indexed irods es id reindex)))
 
 
 (defn- reindex-obj-dest-metadata-handler
@@ -227,13 +227,13 @@
 
 (defn- rm-collection-handler
   [irods es msg]
-  (indexing/remove-entity es :collection (extract-entity-id msg))
+  (indexing/remove-entity es (extract-entity-id msg))
   (update-parent-modify-time irods es (:path msg)))
 
 
 (defn- rm-data-object-handler
   [irods es msg]
-  (indexing/remove-entity es :data-object (extract-entity-id msg))
+  (indexing/remove-entity es (extract-entity-id msg))
   (update-parent-modify-time irods es (:path msg)))
 
 

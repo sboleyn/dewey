@@ -25,24 +25,22 @@
                  :headers {"Content-Type" "application/json"}
                  :body {"script" {"source" script "lang" "painless" "params" params}}}))
 
-(defn entity-type
+(defn- entity-type
   [entity]
   (cond
     (string? entity) :string
     (map? entity) :map))
 
-(defn index-error
-  [e]
-  (let [resp (ex-data e)]
-    (println (:status resp))
-    (cond
-      (= 404 (:status resp))
-      (do (log/info (format "Entity %s not found in index %s" entity-id (cfg/es-index)))
-          false)
-      :else
-      (do (log/info (format "Elasticsearch is not responding as expected."))
-          (throw e)
-          nil))))
+(defn- index-error
+  [e entity-id]
+  (let [resp (ex-data e)]    (cond
+                               (= 404 (:status resp))
+                               (do (log/info (format "Entity %s not found in index %s" entity-id (cfg/es-index)))
+                                   false)
+                               :else
+                               (do (log/info (format "Elasticsearch is not responding as expected."))
+                                   (throw e)))))
+
 
 (defmulti
   ^{:doc "Determines whether or not an iRODS entity has been indexed.
@@ -60,26 +58,21 @@
   [es entity-id]
   (try+
    (s/request es {:url [(cfg/es-index) :_doc entity-id]
-                  :method :head}) true
+                  :method :head})
+   true
    (catch clojure.lang.ExceptionInfo e ;;qbits.spandex.ResponseException is wrapped in clojure.lang.ExceptionInfo
-     (index-error e))
-
-   (catch Exception e
-     (log/info "Elasticsearch is not responding.")
-     (throw e))))
+     (index-error e entity-id))))
 
 
 (defmethod entity-indexed? :map
   [es entity]
-  (try
-    (s/request es {:url [(cfg/es-index) :_doc (str (entity/id entity))]
-                   :method :head}) true
-    (catch clojure.lang.ExceptionInfo e ;;qbits.spandex.ResponseException is wrapped in clojure.lang.ExceptionInfo
-     (index-error e))
-
-   (catch Exception e
-     (log/info "Elasticsearch is not responding.")
-     (throw e))))
+  (let [entity-id (str (entity/id entity))]
+    (try+
+     (s/request es {:url [(cfg/es-index) :_doc entity-id]
+                    :method :head})
+     true
+     (catch clojure.lang.ExceptionInfo e ;;qbits.spandex.ResponseException is wrapped in clojure.lang.ExceptionInfo
+       (index-error e entity-id)))))
 
 (defn index-collection
   "Indexes a collection.
@@ -157,7 +150,6 @@
      This function can throw an exception if it can't connect to elasticsearch."
   [es path-glob]
   (s/request es {:url [(cfg/es-index) :_delete_by_query]
-                 :query-string "analyze_wildcard=true"
                  :method :post
                  :body {:query {:wildcard {:path path-glob}}}}))
 
