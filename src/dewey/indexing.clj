@@ -9,7 +9,7 @@
             [clojure.tools.logging :as log]))
 
 
-(defn- index-doc
+(defn index-doc
   [es doc]
   (s/request es {:url
                  [(cfg/es-index) :_doc (str (:id doc))]
@@ -35,8 +35,8 @@
   [e entity-id]
   (let [resp (ex-data e)]    (cond
                                (= 404 (:status resp))
-                               (do (log/info (format "Entity %s not found in index %s" entity-id (cfg/es-index)))
-                                   false)
+                               
+                                   false
                                :else
                                (do (log/info (format "Elasticsearch is not responding as expected."))
                                    (throw e)))))
@@ -59,6 +59,7 @@
   (try+
    (s/request es {:url [(cfg/es-index) :_doc entity-id]
                   :method :head})
+   (log/info (format "Entity %s found!!!!!" entity-id))
    true
    (catch clojure.lang.ExceptionInfo e ;;qbits.spandex.ResponseException is wrapped in clojure.lang.ExceptionInfo
      (index-error e entity-id))))
@@ -92,6 +93,7 @@
                                    (entity/creation-time coll)
                                    (entity/modification-time coll)
                                    (entity/metadata coll))]
+    (log/info "INDEX-COLLECTION CALLED")
     (index-doc es folder)))
 
 
@@ -151,6 +153,7 @@
   [es path-glob]
   (s/request es {:url [(cfg/es-index) :_delete_by_query]
                  :method :post
+                 :headers {"Content-Type" "application/json"}
                  :body {:query {:wildcard {:path path-glob}}}}))
 
 
@@ -174,6 +177,7 @@
                 ctx._source.label = params.label;"
                {:path  path
                 :label (file/basename path)}))
+  
 
   ([es entity path mod-time]
    (update-doc es
