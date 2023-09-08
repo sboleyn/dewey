@@ -80,7 +80,7 @@
    :creator         (format-user creator)
    :dateCreated     (format-time date-created)
    :dateModified    (format-time date-modified)
-   :metadata        (format-metadata metadata)
+   :metadata   {:irods (format-metadata metadata)}
    :fileSize        file-size
    :fileType        file-type})
 
@@ -104,4 +104,4 @@
    :creator         (format-user creator)
    :dateCreated     (format-time date-created)
    :dateModified    (format-time date-modified)
-   :metadata        (format-metadata metadata)})
+   :metadata   {:irods (format-metadata metadata)}})

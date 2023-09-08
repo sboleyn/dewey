@@ -216,8 +216,8 @@
   [es entity]
   (update-doc es
               entity
-              "ctx._source.metadata = params.metadata"
-              {:metadata (prep/format-metadata (entity/metadata entity))}))
+              "ctx._source.metadata.irods = params.metadata.irods"
+              {:metadata {:irods (prep/format-metadata (entity/metadata entity))}}))
 
 
 (defn update-collection-modify-time
