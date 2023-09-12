@@ -32,10 +32,9 @@
     (map? entity) :map))
 
 (defn- index-error
-  [e entity-id]
+  [e]
   (let [resp (ex-data e)]    (cond
                                (= 404 (:status resp))
-                               
                                    false
                                :else
                                (do (log/info (format "Elasticsearch is not responding as expected."))
@@ -59,10 +58,9 @@
   (try+
    (s/request es {:url [(cfg/es-index) :_doc entity-id]
                   :method :head})
-   (log/info (format "Entity %s found!!!!!" entity-id))
    true
    (catch clojure.lang.ExceptionInfo e ;;qbits.spandex.ResponseException is wrapped in clojure.lang.ExceptionInfo
-     (index-error e entity-id))))
+     (index-error e))))
 
 
 (defmethod entity-indexed? :map
@@ -73,7 +71,7 @@
                     :method :head})
      true
      (catch clojure.lang.ExceptionInfo e ;;qbits.spandex.ResponseException is wrapped in clojure.lang.ExceptionInfo
-       (index-error e entity-id)))))
+       (index-error e)))))
 
 (defn index-collection
   "Indexes a collection.
@@ -93,7 +91,6 @@
                                    (entity/creation-time coll)
                                    (entity/modification-time coll)
                                    (entity/metadata coll))]
-    (log/info "INDEX-COLLECTION CALLED")
     (index-doc es folder)))
 
 
