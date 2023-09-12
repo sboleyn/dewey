@@ -57,7 +57,7 @@
   [irods es entity-type entity-id op]
   (log/trace "apply-or-remove <irods> <es>" entity-type entity-id "<op> called")
   (if-let [entity (entity/lookup-entity irods entity-type entity-id)]
-    (when (or (= type :data-object) (indexable? entity)) (op entity))
+    (when (or (= entity-type :data-object) (indexable? entity)) (op entity))
     (indexing/remove-entity es entity-id)))
 
 (defn- apply-if-indexed
