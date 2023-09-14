@@ -10,9 +10,18 @@
 
 
 (defn index-doc
+  "Indexes a document
+
+   Parameters:
+     es    - the elasticsearch connection
+     doc  - the document to index
+
+   Throws:
+     This function can throw an exception if it can't connect to elasticsearch or iRODS. The
+     function can also throw one if the document is already indexed."
   [es doc]
   (s/request es {:url
-                 [(cfg/es-index) :_doc (str (:id doc))]
+                 [(cfg/es-index) :_create (str (:id doc))]
                  :method :put
                  :headers {"Content-Type" "application/json"}
                  :body doc}))
