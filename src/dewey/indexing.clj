@@ -35,7 +35,7 @@
   [e]
   (let [resp (ex-data e)]    (cond
                                (= 404 (:status resp))
-                                   false
+                               false
                                :else
                                (do (log/info (format "Elasticsearch is not responding as expected."))
                                    (throw e)))))
@@ -132,7 +132,8 @@
      This function can throw an exception if it can't connect to elasticsearch."
   [es entity-id]
   (when (entity-indexed? es (str entity-id))
-    (s/request es {:url [(cfg/es-index) :_doc (str entity-id)]})))
+    (s/request es {:url [(cfg/es-index) :_doc (str entity-id)]
+                   :method :delete})))
 
 (defn remove-entities-like
   "Removes iRODS entities from the search index that have a path matching the provided glob. The glob
@@ -174,7 +175,7 @@
                 ctx._source.label = params.label;"
                {:path  path
                 :label (file/basename path)}))
-  
+
 
   ([es entity path mod-time]
    (update-doc es
