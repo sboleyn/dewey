@@ -33,11 +33,10 @@
 
 (defn- index-error
   [e]
-  (let [resp (ex-data e)]    (cond
-                               (= 404 (:status resp))
+  (let [resp (ex-data e)]    (if
+                              (= 404 (:status resp))
                                false
-                               :else
-                               (do (log/info (format "Elasticsearch is not responding as expected."))
+                               (do (log/info "Elasticsearch is not responding as expected.")
                                    (throw e)))))
 
 
