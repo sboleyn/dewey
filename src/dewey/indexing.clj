@@ -34,12 +34,6 @@
                  :headers {"Content-Type" "application/json"}
                  :body {"script" {"source" script "lang" "painless" "params" params}}}))
 
-(defn- entity-type
-  [entity]
-  (cond
-    (string? entity) :string
-    (map? entity) :map))
-
 (defn- index-error
   [e]
   (let [resp (ex-data e)]    (if
@@ -58,7 +52,9 @@
 
            Throws:
              This function can throw an exception if it can't connect to elasticsearch."}
-  entity-indexed? (fn [_es entity] (entity-type entity)))
+  entity-indexed? (fn [_es entity] (cond
+                                     (string? entity) :string
+                                     (map? entity) :map)))
 
 
 (defmethod entity-indexed? :string
